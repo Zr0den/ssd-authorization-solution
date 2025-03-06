@@ -29,3 +29,5 @@ Interact with the program through swagger (adress above) - We struggled a lot wi
 But trying to do something that requires a policy "correctly" gives a 403 forbidden. Should work with postman though. :)
 
 Our excuse is that we started too late (our fault) and have run out of time. We are going to a conference in Bangkok tomorrow and it is late. Sorry. (Who asked?)
+
+Last note: We struggled a bit with some local file + git nonsense when trying to push to our git repository so we expanded the .gitignore a little. Just saying this because in the past this has broken some things down the line when another person has fetched it :/ ;S 
