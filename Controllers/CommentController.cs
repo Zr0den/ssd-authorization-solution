@@ -37,6 +37,7 @@ public class CommentController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "SubscriberPolicy")]
     public CommentDto Post([FromBody] CommentFormDto dto)
     {
         var userName = HttpContext.User.Identity?.Name;
@@ -53,17 +54,43 @@ public class CommentController : ControllerBase
         return CommentDto.FromEntity(created);
     }
 
-    [HttpPut(":id")]
-    public CommentDto Put(int id, [FromBody] CommentFormDto dto)
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Subscriber,Editor")]
+    public IActionResult Put(int id, [FromBody] CommentFormDto dto)
     {
         var userName = HttpContext.User.Identity?.Name;
         var entity = db
             .Comments.Include(x => x.Author)
-            .Where(x => x.Author.UserName == userName)
-            .Single(x => x.Id == id);
+            .SingleOrDefault(x => x.Id == id);
+
+        if (entity == null)
+        {
+            return NotFound();
+        }
+
+        if (entity.Author.UserName != userName && !User.IsInRole(Roles.Editor))
+        {
+            return Forbid();
+        }
+
         entity.Content = dto.Content;
-        var updated = db.Comments.Update(entity).Entity;
+        db.Comments.Update(entity);
         db.SaveChanges();
-        return CommentDto.FromEntity(updated);
+        return Ok(CommentDto.FromEntity(entity));
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Policy = "EditorPolicy")]
+    public IActionResult Delete(int id)
+    {
+        var entity = db.Comments.SingleOrDefault(x => x.Id == id);
+        if (entity == null)
+        {
+            return NotFound();
+        }
+
+        db.Comments.Remove(entity);
+        db.SaveChanges();
+        return NoContent();
     }
 }

@@ -3,3 +3,5 @@ obj/
 .idea/
 app/
 db.sqlite*
+.vs/
+.suo/

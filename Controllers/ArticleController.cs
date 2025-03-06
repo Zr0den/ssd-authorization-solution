@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ssd_authorization_solution.DTOs;
@@ -33,6 +34,7 @@ public class ArticleController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "WriterPolicy")]
     public ArticleDto Post([FromBody] ArticleFormDto dto)
     {
         var userName = HttpContext.User.Identity?.Name;
@@ -50,6 +52,7 @@ public class ArticleController : ControllerBase
     }
 
     [HttpPut(":id")]
+    [Authorize(Policy = "WriterPolicy")]
     public ArticleDto Put(int id, [FromBody] ArticleFormDto dto)
     {
         var userName = HttpContext.User.Identity?.Name;
@@ -62,5 +65,20 @@ public class ArticleController : ControllerBase
         var updated = db.Articles.Update(entity).Entity;
         db.SaveChanges();
         return ArticleDto.FromEntity(updated);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Policy = "EditorPolicy")]
+    public IActionResult Delete(int id)
+    {
+        var entity = db.Articles.SingleOrDefault(x => x.Id == id);
+        if (entity == null)
+        {
+            return NotFound();
+        }
+
+        db.Articles.Remove(entity);
+        db.SaveChanges();
+        return NoContent();
     }
 }
